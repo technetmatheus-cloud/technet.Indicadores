@@ -42,7 +42,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!selectedCity) {
-      navigate('/selecionar-cidade');
+      navigate('/selecionar-cidade', { replace: true });
       return;
     }
     fetchData();
@@ -138,6 +138,14 @@ const Dashboard = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Indicadores');
     XLSX.writeFile(wb, `technet_${selectedCity}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
+
+   if (!selectedCity) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="text-muted-foreground text-sm">Redirecionando...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

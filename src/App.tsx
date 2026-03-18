@@ -32,7 +32,16 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (!user) return <Navigate to="/login" replace />;
 
   // Bloqueia acesso se não tem perfil ou não está aprovado
-  if (!profile || profile.status_aprovacao !== 'aprovado') {
+    if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Bloqueia acesso se não está aprovado
+  if (profile.status_aprovacao !== 'aprovado') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md shadow-lg">
