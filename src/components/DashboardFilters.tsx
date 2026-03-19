@@ -33,47 +33,79 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
 
   const filterContent = (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <Select value={filters.tecnico} onValueChange={(v) => onFilterChange({ ...filters, tecnico: v })}>
-          <SelectTrigger><SelectValue placeholder="Técnico" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos</SelectItem>
-            {tecnicos.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-gray-700">Técnico</label>
+    <Select
+      value={filters.tecnico}
+      onValueChange={(v) => onFilterChange({ ...filters, tecnico: v })}
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Técnico" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todos">Todos</SelectItem>
+        {tecnicos.map((t) => (
+          <SelectItem key={t} value={t}>
+            {t}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
 
-        <Select value={filters.supervisor} onValueChange={(v) => onFilterChange({ ...filters, supervisor: v })}>
-          <SelectTrigger><SelectValue placeholder="Supervisor" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos</SelectItem>
-            {supervisores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-gray-700">Supervisor</label>
+    <Select
+      value={filters.supervisor}
+      onValueChange={(v) => onFilterChange({ ...filters, supervisor: v })}
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Supervisor" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todos">Todos</SelectItem>
+        {supervisores.map((s) => (
+          <SelectItem key={s} value={s}>
+            {s}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
 
-        <Input
-          type="date"
-          value={filters.dataInicial}
-          onChange={(e) => onFilterChange({ ...filters, dataInicial: e.target.value })}
-          placeholder="Data Inicial"
-        />
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-gray-700">Data inicial</label>
+    <Input
+      type="date"
+      value={filters.dataInicial}
+      onChange={(e) => onFilterChange({ ...filters, dataInicial: e.target.value })}
+    />
+  </div>
 
-        <Input
-          type="date"
-          value={filters.dataFinal}
-          onChange={(e) => onFilterChange({ ...filters, dataFinal: e.target.value })}
-          placeholder="Data Final"
-        />
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-gray-700">Data final</label>
+    <Input
+      type="date"
+      value={filters.dataFinal}
+      onChange={(e) => onFilterChange({ ...filters, dataFinal: e.target.value })}
+    />
+  </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Busca geral..."
-            value={filters.busca}
-            onChange={(e) => onFilterChange({ ...filters, busca: e.target.value })}
-            className="pl-9"
-          />
-        </div>
-      </div>
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-gray-700">Busca</label>
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Busca geral..."
+        value={filters.busca}
+        onChange={(e) => onFilterChange({ ...filters, busca: e.target.value })}
+        className="pl-9"
+      />
+    </div>
+  </div>
+</div>
+
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={onClearFilters}>
           <X className="h-4 w-4" /> Limpar
