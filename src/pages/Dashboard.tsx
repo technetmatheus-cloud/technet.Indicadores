@@ -33,8 +33,8 @@ const Dashboard = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(getStoredTab);
   const [filters, setFilters] = useState({
-    tecnico: 'todos',
-    supervisor: 'todos',
+    tecnicos: [] as string[],
+    supervisores: [] as string[],
     dataInicial: '',
     dataFinal: '',
     busca: '',
@@ -68,11 +68,11 @@ const Dashboard = () => {
   // Filter data
   const filteredData = useMemo(() => {
     let data = indicadores;
-    if (filters.tecnico && filters.tecnico !== 'todos') {
-      data = data.filter((d) => d.tecnico === filters.tecnico);
+        if (filters.tecnicos.length > 0) {
+      data = data.filter((d) => filters.tecnicos.includes(d.tecnico));
     }
-    if (filters.supervisor && filters.supervisor !== 'todos') {
-      data = data.filter((d) => d.supervisor === filters.supervisor);
+     if (filters.supervisores.length > 0) {
+      data = data.filter((d) => filters.supervisores.includes(d.supervisor));
     }
     if (filters.dataInicial) {
       data = data.filter((d) => d.data_referencia >= filters.dataInicial);
@@ -93,11 +93,11 @@ const Dashboard = () => {
 
   const filteredHorarios = useMemo(() => {
     let data = horarios;
-    if (filters.tecnico && filters.tecnico !== 'todos') {
-      data = data.filter((d) => d.tecnico === filters.tecnico);
+      if (filters.tecnicos.length > 0) {
+      data = data.filter((d) => filters.tecnicos.includes(d.tecnico));
     }
-    if (filters.supervisor && filters.supervisor !== 'todos') {
-      data = data.filter((d) => d.supervisor === filters.supervisor);
+    if (filters.supervisores.length > 0) {
+      data = data.filter((d) => filters.supervisores.includes(d.supervisor));
     }
     if (filters.dataInicial) {
       data = data.filter((d) => d.data_referencia >= filters.dataInicial);
@@ -119,7 +119,7 @@ const Dashboard = () => {
   const tecnicos = useMemo(() => [...new Set(indicadores.map((d) => d.tecnico))].sort(), [indicadores]);
   const supervisores = useMemo(() => [...new Set(indicadores.map((d) => d.supervisor))].sort(), [indicadores]);
 
-  const clearFilters = () => setFilters({ tecnico: 'todos', supervisor: 'todos', dataInicial: '', dataFinal: '', busca: '' });
+  const clearFilters = () => setFilters({ tecnicos: [], supervisores: [], dataInicial: '', dataFinal: '', busca: '' });
 
   const exportCSV = () => {
     const ws = XLSX.utils.json_to_sheet(filteredData);

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, X, Download, Upload, Filter, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import MultiSelectCombobox from '@/components/MultiSelectCombobox';
 
 interface DashboardFiltersProps {
   tecnicos: string[];
   supervisores: string[];
   filters: {
-    tecnico: string;
-    supervisor: string;
+   tecnicos: string[];
+    supervisores: string[];
     dataInicial: string;
     dataFinal: string;
     busca: string;
@@ -29,49 +30,29 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(!isMobile);
 
-  const hasActiveFilters = filters.tecnico !== 'todos' || filters.supervisor !== 'todos' || filters.dataInicial || filters.dataFinal || filters.busca;
+  const hasActiveFilters = filters.tecnicos.length > 0 || filters.supervisores.length > 0 || filters.dataInicial || filters.dataFinal || filters.busca;
 
   const filterContent = (
     <>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
   <div className="flex flex-col gap-2">
     <label className="text-sm font-medium text-gray-700">Técnico</label>
-    <Select
-      value={filters.tecnico}
-      onValueChange={(v) => onFilterChange({ ...filters, tecnico: v })}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Técnico" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="todos">Todos</SelectItem>
-        {tecnicos.map((t) => (
-          <SelectItem key={t} value={t}>
-            {t}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+         <MultiSelectCombobox
+          options={tecnicos}
+          selected={filters.tecnicos}
+          onChange={(v) => onFilterChange({ ...filters, tecnicos: v })}
+          placeholder="Técnico"
+        />
   </div>
 
   <div className="flex flex-col gap-2">
     <label className="text-sm font-medium text-gray-700">Supervisor</label>
-    <Select
-      value={filters.supervisor}
-      onValueChange={(v) => onFilterChange({ ...filters, supervisor: v })}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Supervisor" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="todos">Todos</SelectItem>
-        {supervisores.map((s) => (
-          <SelectItem key={s} value={s}>
-            {s}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+          <MultiSelectCombobox
+          options={supervisores}
+          selected={filters.supervisores}
+          onChange={(v) => onFilterChange({ ...filters, supervisores: v })}
+          placeholder="Supervisor"
+        />
   </div>
 
   <div className="flex flex-col gap-2">
