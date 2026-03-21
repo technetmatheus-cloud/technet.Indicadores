@@ -66,8 +66,8 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({ data, indicatorKey, label }
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <KPICard title="Média Geral" value={`${media.toFixed(1)}%`} icon={BarChart3} color={atingeMeta(indicatorKey, media) ? 'success' : 'destructive'} />
         <KPICard title="Avaliados" value={String(rankings.length)} icon={Users} color="primary" />
-        <KPICard title="Melhor" value={`${melhor.toFixed(1)}%`} icon={TrendingUp} color="success" />
-        <KPICard title="Pior" value={`${pior.toFixed(1)}%`} icon={TrendingDown} color="destructive" />
+        <KPICard title="Melhor Média" value={`${melhor.toFixed(1)}%`} icon={TrendingUp} color="success" />
+        <KPICard title="Abaixo da Média" value={`${pior.toFixed(1)}%`} icon={TrendingDown} color="destructive" />
         <KPICard title="Na Meta" value={`${pctMeta.toFixed(0)}%`} subtitle={metaLabel} icon={Target} color={pctMeta >= 70 ? 'success' : 'warning'} />
       </div>
 

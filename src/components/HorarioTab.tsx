@@ -67,7 +67,7 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard title="Tempo Ideal" value={String(ideal.length)} subtitle={`${pctIdeal.toFixed(1)}%`} icon={CheckCircle} color="success" />
-        <KPICard title="Tempo Ruim" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
+        <KPICard title="Tempo Abaixo" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
         <KPICard title="% Ideal" value={`${pctIdeal.toFixed(1)}%`} icon={Clock} color="success" />
         <KPICard title="Avaliados" value={String(rankings.length)} icon={Users} color="primary" />
       </div>

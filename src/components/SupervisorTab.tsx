@@ -71,7 +71,7 @@ const SupervisorTab: React.FC<SupervisorTabProps> = ({ data }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard title="Média Geral" value={`${mediaGeral.toFixed(1)}%`} icon={BarChart3} color="primary" />
         <KPICard title="Supervisores" value={String(supervisorAvgs.length)} icon={Users} color="primary" />
-        <KPICard title="Melhor" value={top5[0]?.nome || '-'} subtitle={top5[0] ? `${top5[0].valor.toFixed(1)}%` : ''} icon={TrendingUp} color="success" />
+        <KPICard title="Melhor Média" value={top5[0]?.nome || '-'} subtitle={top5[0] ? `${top5[0].valor.toFixed(1)}%` : ''} icon={TrendingUp} color="success" />
         <KPICard title="Menor Média" value={bottom5[0]?.nome || '-'} subtitle={bottom5[0] ? `${bottom5[0].valor.toFixed(1)}%` : ''} icon={TrendingDown} color="destructive" />
       </div>
 
