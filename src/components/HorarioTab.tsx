@@ -22,24 +22,31 @@ const minutosParaHorario = (minutos: number): string => {
 };
 
 const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
-  const ideal = data.filter((d) => d.classificacao_horario === 'ideal');
-  const ruim = data.filter((d) => d.classificacao_horario === 'ruim');
-  const totalRecords = data.length;
+  const latestByLogin = new Map<string, HorarioPrimeiroCliente>();
+  data.forEach((d) => {
+    const existing = latestByLogin.get(d.login);
+    if (!existing || d.data_referencia > existing.data_referencia) {
+      latestByLogin.set(d.login, d);
+    }
+  });
+  const uniqueData = Array.from(latestByLogin.values());
+
+  const ideal = uniqueData.filter((d) => d.classificacao_horario === 'ideal');
+  const ruim = uniqueData.filter((d) => d.classificacao_horario === 'ruim');
+  const totalRecords = uniqueData.length;
   const pctIdeal = totalRecords > 0 ? (ideal.length / totalRecords) * 100 : 0;
   const pctRuim = totalRecords > 0 ? (ruim.length / totalRecords) * 100 : 0;
 
-  const byTecnico: Record<string, { minutos: number; total: number; nome: string }> = {};
-  data.forEach((d) => {
-    if (!byTecnico[d.login]) byTecnico[d.login] = { minutos: 0, total: 0, nome: d.tecnico };
-    byTecnico[d.login].total++;
-    byTecnico[d.login].minutos += horarioParaMinutos(d.horario_primeiro_cliente);
+ const byTecnico: Record<string, { minutos: number; nome: string }> = {};
+  uniqueData.forEach((d) => {
+    byTecnico[d.login] = { minutos: horarioParaMinutos(d.horario_primeiro_cliente), nome: d.tecnico };
   });
 
   const rankings = Object.values(byTecnico)
     .map((t) => ({ 
       nome: t.nome, 
-      valor: t.minutos / t.total,
-      display: minutosParaHorario(t.minutos / t.total)
+      valor: t.minutos,
+      display: minutosParaHorario(t.minutos)
     }))
     .sort((a, b) => a.valor - b.valor);
 
