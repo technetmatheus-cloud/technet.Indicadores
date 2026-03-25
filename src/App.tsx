@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import SelecionarCidade from "./pages/SelecionarCidade";
 import Dashboard from "./pages/Dashboard";
+import KmRotas from "./pages/KmRotas";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import React from "react";
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/cadastro" element={<PublicRoute><Cadastro /></PublicRoute>} />
               <Route path="/selecionar-cidade" element={<ProtectedRoute><SelecionarCidade /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/km-rotas" element={<ProtectedRoute><KmRotas /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

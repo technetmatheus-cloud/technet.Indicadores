@@ -1,0 +1,123 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCity } from '@/contexts/CityContext';
+import { supabase } from '@/lib/supabase';
+import DashboardHeader from '@/components/DashboardHeader';
+import KmFilters, { type KmFilterState } from '@/components/km/KmFilters';
+import KmImportDialog from '@/components/km/KmImportDialog';
+import KmManualDialog from '@/components/km/KmManualDialog';
+import KmMapTab from '@/components/km/KmMapTab';
+import KmChartsTab from '@/components/km/KmChartsTab';
+import KmDataTab from '@/components/km/KmDataTab';
+import KPICard from '@/components/KPICard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Route, Fuel, ClipboardCheck } from 'lucide-react';
+import type { KmTecnica } from '@/types/database';
+
+const KmRotas = () => {
+  const { selectedCity } = useCity();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState<KmTecnica[]>([]);
+  const [importOpen, setImportOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('graficos');
+  const [filters, setFilters] = useState<KmFilterState>({
+    dataInicial: '',
+    dataFinal: '',
+    tecnicos: [],
+    frentes: [],
+  });
+
+  useEffect(() => {
+    if (!selectedCity) {
+      navigate('/selecionar-cidade', { replace: true });
+      return;
+    }
+    fetchData();
+  }, [selectedCity]);
+
+  const fetchData = async () => {
+    if (!selectedCity) return;
+    const { data: rows } = await supabase
+      .from('km_tecnica')
+      .select('*')
+      .eq('cidade', selectedCity);
+    setData((rows as KmTecnica[]) || []);
+  };
+
+  const filteredData = useMemo(() => {
+    let d = data;
+    if (filters.dataInicial) d = d.filter(r => r.data >= filters.dataInicial);
+    if (filters.dataFinal) d = d.filter(r => r.data <= filters.dataFinal);
+    if (filters.tecnicos.length > 0) d = d.filter(r => filters.tecnicos.includes(r.recurso));
+    if (filters.frentes.length > 0) d = d.filter(r => filters.frentes.includes(r.frente));
+    return d;
+  }, [data, filters]);
+
+  const tecnicos = useMemo(() => [...new Set(data.map(d => d.recurso))].sort(), [data]);
+  const frentes = useMemo(() => [...new Set(data.map(d => d.frente).filter(Boolean))].sort(), [data]);
+
+  const totalKm = useMemo(() => filteredData.reduce((s, d) => s + (d.distancia_km || 0), 0), [filteredData]);
+  const totalOS = filteredData.length;
+  // Estimate liters: avg 10 km/l for service vehicles
+  const litrosEstimado = totalKm / 10;
+
+  const clearFilters = () => setFilters({ dataInicial: '', dataFinal: '', tecnicos: [], frentes: [] });
+
+  if (!selectedCity) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="text-muted-foreground text-sm">Redirecionando...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <KmFilters
+          tecnicos={tecnicos}
+          frentes={frentes}
+          filters={filters}
+          onFilterChange={setFilters}
+          onClearFilters={clearFilters}
+          onImport={() => setImportOpen(true)}
+          onManualAdd={() => setManualOpen(true)}
+        />
+
+        {/* KPIs principais */}
+        <div className="grid grid-cols-3 gap-3">
+          <KPICard title="Qtd. de OS" value={String(totalOS)} icon={ClipboardCheck} color="primary" />
+          <KPICard title="KM Total" value={`${totalKm.toFixed(1)} km`} icon={Route} color="success" />
+          <KPICard title="Litros Estimados" value={`${litrosEstimado.toFixed(1)} L`} icon={Fuel} color="warning" />
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full sm:w-auto bg-card border border-border p-1">
+            <TabsTrigger value="graficos" className="text-xs sm:text-sm">Gráficos</TabsTrigger>
+            <TabsTrigger value="mapa" className="text-xs sm:text-sm">Mapa</TabsTrigger>
+            <TabsTrigger value="dados" className="text-xs sm:text-sm">Dados Detalhados</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="graficos">
+            <KmChartsTab data={filteredData} />
+          </TabsContent>
+          <TabsContent value="mapa">
+            <KmMapTab data={filteredData} />
+          </TabsContent>
+          <TabsContent value="dados">
+            <KmDataTab data={filteredData} />
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <KmImportDialog open={importOpen} onOpenChange={setImportOpen} onImportComplete={fetchData} />
+      <KmManualDialog open={manualOpen} onOpenChange={setManualOpen} onComplete={fetchData} />
+    </div>
+  );
+};
+
+export default KmRotas;

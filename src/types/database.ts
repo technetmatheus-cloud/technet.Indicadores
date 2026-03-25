@@ -52,6 +52,19 @@ export interface HorarioPrimeiroCliente {
   updated_at: string;
 }
 
+export interface KmTecnica {
+  id: string;
+  login_tecnico: string;
+  recurso: string;
+  data: string;
+  trecho: string;
+  endereco_destino: string;
+  distancia_km: number;
+  frente: string;
+  cidade: string;
+  created_at: string;
+}
+
 export type IndicadorKey = 'nr35' | 'tnps' | 'inspecao_e' | 'revisita' | 'os_dig' | 'geo' | 'ura' | 'tec1' | 'bds';
 
 export const INDICADOR_LABELS: Record<IndicadorKey, string> = {
@@ -142,6 +155,12 @@ export type Database = {
         Row: SolicitacaoAcesso;
         Insert: Partial<SolicitacaoAcesso> & { user_id: string; nome: string; email: string };
         Update: Partial<SolicitacaoAcesso>;
+        Relationships: [];
+      };
+        km_tecnica: {
+        Row: KmTecnica;
+        Insert: Omit<KmTecnica, 'id' | 'created_at'>;
+        Update: Partial<Omit<KmTecnica, 'id' | 'created_at'>>;
         Relationships: [];
       };
     };
