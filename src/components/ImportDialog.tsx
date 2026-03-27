@@ -58,8 +58,8 @@ const ImportDialog: React.FC<ImportDialogProps> = ({ open, onOpenChange, onImpor
       }
 
       const headers = Object.keys(jsonData[0]).map((h) => h.trim().toUpperCase());
-      if (!headers.includes('LOGIN')) {
-        setResult({ success: 0, errors: ['Coluna LOGIN não encontrada no arquivo.'], skipped: 0 });
+      if (!headers.includes('LOGIN') && !headers.includes('LOGIN_TECNICO')) {
+        setResult({ success: 0, errors: ['Coluna LOGIN ou LOGIN_TECNICO não encontrada no arquivo.'], skipped: 0 });
         setLoading(false);
         return;
       }
@@ -87,14 +87,18 @@ const ImportDialog: React.FC<ImportDialogProps> = ({ open, onOpenChange, onImpor
       const hasHorario = detectedCols.some((c) => c.mapped === 'horario_primeiro_cliente');
       const indicatorCols = detectedCols.filter((c) => c.mapped !== 'horario_primeiro_cliente');
 
+      // Detect HORA_ENTRADA column for comparativo_hro
+      const horaEntradaKey = Object.keys(jsonData[0]).find((k) => k.trim().toUpperCase() === 'HORA_ENTRADA');
+      const hasHoraEntrada = !!horaEntradaKey;
+
       let success = 0;
       let skipped = 0;
       const errors: string[] = [];
       const indicadorRows: any[] = [];
       const horarioRows: any[] = [];
-
+      const horaEntradaRows: any[] = [];
       for (const row of jsonData) {
-        const loginKey = Object.keys(row).find((k) => k.trim().toUpperCase() === 'LOGIN');
+        const loginKey = Object.keys(row).find((k) => ['LOGIN', 'LOGIN_TECNICO'].includes(k.trim().toUpperCase()));
         if (!loginKey) continue;
         const login = String(row[loginKey]).trim().toUpperCase();
         const tecnico = tecnicoMap.get(login);
@@ -191,6 +195,29 @@ const ImportDialog: React.FC<ImportDialogProps> = ({ open, onOpenChange, onImpor
           }
         }
 
+        // Hora entrada row
+        if (hasHoraEntrada && horaEntradaKey) {
+          const rawHora = row[horaEntradaKey];
+          let horaVal = '';
+          if (typeof rawHora === 'number' && rawHora > 0 && rawHora < 1) {
+            const totalSeconds = Math.round(rawHora * 86400);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            horaVal = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+          } else {
+            horaVal = String(rawHora || '').trim();
+          }
+          if (horaVal) {
+            horaEntradaRows.push({
+              data: dataRef,
+              login_tecnico: tecnico.login,
+              hora_entrada: horaVal,
+              cidade: tecnico.cidade,
+            });
+          }
+        }
+
         success++;
       }
 
@@ -208,6 +235,14 @@ const ImportDialog: React.FC<ImportDialogProps> = ({ open, onOpenChange, onImpor
           .from('horario_primeiro_cliente')
           .upsert(horarioRows as any, { onConflict: 'login,data_referencia' });
         if (error) errors.push(`Erro ao salvar horários: ${error.message}`);
+      }
+
+      // Insert hora_entrada
+      if (horaEntradaRows.length > 0) {
+        const { error } = await supabase
+          .from('horario_entrada_tecnico')
+          .insert(horaEntradaRows as any);
+        if (error) errors.push(`Erro ao salvar hora entrada: ${error.message}`);
       }
 
       setResult({ success, errors: errors.slice(0, 20), skipped });

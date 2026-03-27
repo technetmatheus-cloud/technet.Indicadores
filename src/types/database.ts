@@ -52,6 +52,15 @@ export interface HorarioPrimeiroCliente {
   updated_at: string;
 }
 
+export interface HorarioEntradaTecnico {
+  id: number;
+  data: string;
+  login_tecnico: string;
+  hora_entrada: string;
+  cidade: string;
+  created_at: string;
+}
+
 export interface KmTecnica {
   id: string;
   login_tecnico: string;

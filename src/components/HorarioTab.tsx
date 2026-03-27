@@ -66,7 +66,7 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
 
   const pieData = [
     { name: 'Ideal', value: ideal.length },
-    { name: 'Ruim', value: ruim.length },
+    { name: 'Abaixo', value: ruim.length },
   ];
   const pieColors = ['hsl(142, 71%, 45%)', 'hsl(0, 84%, 60%)'];
 

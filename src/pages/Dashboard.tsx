@@ -8,6 +8,7 @@ import DashboardFilters from '@/components/DashboardFilters';
 import IndicatorTab from '@/components/IndicatorTab';
 import SupervisorTab from '@/components/SupervisorTab';
 import HorarioTab from '@/components/HorarioTab';
+import ComparativoHroTab from '@/components/ComparativoHroTab';
 import ResumoTab from '@/components/ResumoTab';
 import ImportDialog from '@/components/ImportDialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -173,6 +174,7 @@ const Dashboard = () => {
                 </TabsTrigger>
               ))}
               <TabsTrigger value="horario" className="text-xs whitespace-nowrap">HORÁRIO</TabsTrigger>
+              <TabsTrigger value="comparativo_hro" className="text-xs whitespace-nowrap">COMPARATIVO_HRO</TabsTrigger>
               <TabsTrigger value="supervisor" className="text-xs whitespace-nowrap">SUPERVISOR</TabsTrigger>
             </TabsList>
           </div>
@@ -189,6 +191,10 @@ const Dashboard = () => {
 
           <TabsContent value="horario">
             <HorarioTab data={filteredHorarios} />
+          </TabsContent>
+          
+          <TabsContent value="comparativo_hro">
+            <ComparativoHroTab horarioData={filteredHorarios} />
           </TabsContent>
 
           <TabsContent value="supervisor">
