@@ -48,20 +48,20 @@ const minutosParaHorario = (minutos: number): string => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
 
-const classificar = (horaEntrada: string): 'IDEAL' | 'RUIM' | 'NEUTRO' => {
-  const s = timeToSeconds(horaEntrada);
-  const ruimLimit = timeToSeconds('08:15:00');
-  const idealStart = timeToSeconds('07:40:00');
-  const idealEnd = timeToSeconds('08:00:00');
-  if (s > ruimLimit) return 'RUIM';
-  if (s >= idealStart && s <= idealEnd) return 'IDEAL';
-  return 'NEUTRO';
+const classificarDeslocamento = (tempoMinutos: number): 'IDEAL' | 'RUIM' | 'NEUTRO' => {
+  if (tempoMinutos >= 40) return 'RUIM';
+  if (tempoMinutos >= 30) return 'NEUTRO';
+  return 'IDEAL';
 };
 
-const classColor = (c: string) => {
-  if (c === 'IDEAL') return 'text-success';
-  if (c === 'RUIM') return 'text-destructive';
-  return 'text-muted-foreground';
+const classDotColor = (c: string) => {
+  if (c === 'IDEAL') return 'bg-success';
+  if (c === 'RUIM') return 'bg-destructive';
+  return 'bg-warning';
+};
+
+const formatDatePtBr = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 };
 
 interface ComparativoHroTabProps {
@@ -113,7 +113,7 @@ const ComparativoHroTab: React.FC<ComparativoHroTabProps> = ({ horarioData }) =>
         horario_primeiro_cliente: h.horario_primeiro_cliente,
         tempo_deslocamento: secondsToTime(diffSec),
         tempo_minutos: diffSec / 60,
-        classificacao: classificar(entrada.hora_entrada),
+        classificacao: classificarDeslocamento(diffSec / 60),
       });
     });
 
@@ -169,7 +169,7 @@ const ComparativoHroTab: React.FC<ComparativoHroTabProps> = ({ horarioData }) =>
 
   const pieData = [
     { name: 'Ideal', value: ideal.length },
-    { name: 'Ruim', value: ruim.length },
+    { name: 'Abaixo', value: ruim.length },
   ];
   const pieColors = ['hsl(142, 71%, 45%)', 'hsl(0, 84%, 60%)'];
 
@@ -252,15 +252,15 @@ const ComparativoHroTab: React.FC<ComparativoHroTabProps> = ({ horarioData }) =>
               <TableBody>
                 {comparativo.map((r, i) => (
                   <TableRow key={i}>
-                    <TableCell className="text-xs">{r.data}</TableCell>
+                    <TableCell className="text-xs">{formatDatePtBr(r.data)}</TableCell>
                     <TableCell className="text-xs font-mono">{r.login_tecnico}</TableCell>
                     <TableCell className="text-xs">{r.nome_tecnico}</TableCell>
                     <TableCell className="text-xs">{r.supervisor}</TableCell>
                     <TableCell className="text-xs">{r.hora_entrada}</TableCell>
                     <TableCell className="text-xs">{r.horario_primeiro_cliente}</TableCell>
                     <TableCell className="text-xs font-semibold">{r.tempo_deslocamento}</TableCell>
-                    <TableCell className={`text-xs font-semibold ${classColor(r.classificacao)}`}>
-                      {r.classificacao}
+                    <TableCell className="text-xs">
+                      <span className={`inline-block w-3 h-3 rounded-full ${classDotColor(r.classificacao)}`} title={r.classificacao} />
                     </TableCell>
                   </TableRow>
                 ))}

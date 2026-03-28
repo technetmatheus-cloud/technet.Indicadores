@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCity } from '@/contexts/CityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import DashboardHeader from '@/components/DashboardHeader';
 import KmFilters, { type KmFilterState } from '@/components/km/KmFilters';
@@ -11,12 +12,13 @@ import KmChartsTab from '@/components/km/KmChartsTab';
 import KmDataTab from '@/components/km/KmDataTab';
 import KPICard from '@/components/KPICard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Route, Fuel, ClipboardCheck } from 'lucide-react';
+import { Route, Fuel, ClipboardCheck, ShieldAlert } from 'lucide-react';
 import type { KmTecnica } from '@/types/database';
 
 const KmRotas = () => {
   const { selectedCity } = useCity();
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   const [data, setData] = useState<KmTecnica[]>([]);
   const [importOpen, setImportOpen] = useState(false);
@@ -69,6 +71,20 @@ const KmRotas = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <span className="text-muted-foreground text-sm">Redirecionando...</span>
+      </div>
+    );
+  }
+    if (profile?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardHeader />
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+          <ShieldAlert className="h-16 w-16 text-warning mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Acesso Restrito</h2>
+          <p className="text-muted-foreground text-sm max-w-md">
+            Você não tem permissão para acessar esta página. Entre em contato com um Administrador.
+          </p>
+        </div>
       </div>
     );
   }
