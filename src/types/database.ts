@@ -71,7 +71,12 @@ export interface KmTecnica {
   distancia_km: number;
   frente: string;
   cidade: string;
+  coord_origem_x: number | null;
+  coord_origem_y: number | null;
+  coord_destino_x: number | null;
+  coord_destino_y: number | null;
   created_at: string;
+
 }
 
 export type IndicadorKey = 'nr35' | 'tnps' | 'inspecao_e' | 'revisita' | 'os_dig' | 'geo' | 'ura' | 'tec1' | 'bds';

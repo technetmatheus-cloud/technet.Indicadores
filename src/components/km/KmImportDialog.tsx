@@ -91,6 +91,10 @@ const KmImportDialog: React.FC<KmImportDialogProps> = ({ open, onOpenChange, onI
       const colDistancia = findColumn(rawHeaders, 'DISTÂNCIA (KM)', 'DISTANCIA (KM)', 'DISTÂNCIA', 'DISTANCIA', 'KM');
       const colFrente = findColumn(rawHeaders, 'FRENTE');
       const colCidade = findColumn(rawHeaders, 'CIDADE');
+      const colCoordOrigemX = findColumn(rawHeaders, 'COORD ORIGEM X', 'COORD_ORIGEM_X');
+      const colCoordOrigemY = findColumn(rawHeaders, 'COORD ORIGEM Y', 'COORD_ORIGEM_Y');
+      const colCoordDestinoX = findColumn(rawHeaders, 'COORD DESTINO X', 'COORD_DESTINO_X');
+      const colCoordDestinoY = findColumn(rawHeaders, 'COORD DESTINO Y', 'COORD_DESTINO_Y');
 
       if (!colLogin) {
         setResult({ success: 0, errors: ['Coluna "Login do Técnico" não encontrada.'], skipped: 0 });
@@ -118,6 +122,10 @@ const KmImportDialog: React.FC<KmImportDialogProps> = ({ open, onOpenChange, onI
           distancia_km: parseDecimal(colDistancia ? row[colDistancia] : 0),
           frente: colFrente ? String(row[colFrente] || '').trim() : '',
           cidade: cidade || selectedCity,
+          coord_origem_x: colCoordOrigemX ? parseDecimal(row[colCoordOrigemX]) || null : null,
+          coord_origem_y: colCoordOrigemY ? parseDecimal(row[colCoordOrigemY]) || null : null,
+          coord_destino_x: colCoordDestinoX ? parseDecimal(row[colCoordDestinoX]) || null : null,
+          coord_destino_y: colCoordDestinoY ? parseDecimal(row[colCoordDestinoY]) || null : null,
         });
         success++;
       }
