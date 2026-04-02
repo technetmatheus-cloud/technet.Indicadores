@@ -6,6 +6,7 @@ import type { KmTecnica } from '@/types/database';
 
 interface KmDataTabProps {
   data: KmTecnica[];
+  transporteMap: Map<string, string>;
 }
 
 interface TecnicoResumo {
@@ -15,9 +16,11 @@ interface TecnicoResumo {
   osTotal: number;
   kmPorOs: number;
   pontosGps: number;
+  transporte: string;
+  litros: number;
 }
 
-const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
+const KmDataTab: React.FC<KmDataTabProps> = ({ data, transporteMap }) => {
   const resumo = useMemo(() => {
     const map = new Map<string, TecnicoResumo>();
     data.forEach(d => {
@@ -28,6 +31,8 @@ const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
         osTotal: 0,
         kmPorOs: 0,
         pontosGps: 0,
+        transporte: '',
+        litros: 0,
       };
       existing.kmTotal += d.distancia_km || 0;
       existing.osTotal += 1;
@@ -35,9 +40,18 @@ const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
       map.set(d.login_tecnico, existing);
     });
     return Array.from(map.values())
-      .map(t => ({ ...t, kmPorOs: t.osTotal > 0 ? t.kmTotal / t.osTotal : 0 }))
+         .map(t => {
+        const tipo = transporteMap.get(t.login.toUpperCase()) || 'carro';
+        const kmPorLitro = tipo === 'moto' ? 30 : 10;
+        return {
+          ...t,
+          kmPorOs: t.osTotal > 0 ? t.kmTotal / t.osTotal : 0,
+          transporte: tipo,
+          litros: t.kmTotal / kmPorLitro,
+        };
+      })
       .sort((a, b) => b.kmTotal - a.kmTotal);
-  }, [data]);
+}, [data, transporteMap]);
 
   return (
     <Card>
@@ -53,7 +67,9 @@ const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
           <TableHeader>
             <TableRow>
               <TableHead className="text-xs">Técnico</TableHead>
+              <TableHead className="text-xs text-center">Transporte</TableHead>
               <TableHead className="text-xs text-right">KM Total</TableHead>
+              <TableHead className="text-xs text-right">Litros Est.</TableHead>
               <TableHead className="text-xs text-right">OS</TableHead>
               <TableHead className="text-xs text-right">KM/OS</TableHead>
               <TableHead className="text-xs text-right">Pontos GPS</TableHead>
@@ -62,7 +78,7 @@ const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
           <TableBody>
             {resumo.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground text-sm py-8">
+                <TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-8">
                   Nenhum dado encontrado
                 </TableCell>
               </TableRow>
@@ -70,7 +86,9 @@ const KmDataTab: React.FC<KmDataTabProps> = ({ data }) => {
             {resumo.map((t) => (
               <TableRow key={t.login}>
                 <TableCell className="text-xs sm:text-sm font-medium">{t.nome}</TableCell>
+                <TableCell className="text-xs sm:text-sm text-center capitalize">{t.transporte === 'moto' ? ' Moto' : ' Carro'}</TableCell>
                 <TableCell className="text-xs sm:text-sm text-right">{t.kmTotal.toFixed(1)}</TableCell>
+                <TableCell className="text-xs sm:text-sm text-right">{t.litros.toFixed(1)} L</TableCell>
                 <TableCell className="text-xs sm:text-sm text-right">{t.osTotal}</TableCell>
                 <TableCell className="text-xs sm:text-sm text-right">{t.kmPorOs.toFixed(1)}</TableCell>
                 <TableCell className="text-xs sm:text-sm text-right">{t.pontosGps}</TableCell>

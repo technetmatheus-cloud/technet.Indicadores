@@ -7,9 +7,10 @@ import type { KmTecnica } from '@/types/database';
 
 interface KmChartsTabProps {
   data: KmTecnica[];
+  transporteMap: Map<string, string>;
 }
 
-const KmChartsTab: React.FC<KmChartsTabProps> = ({ data }) => {
+const KmChartsTab: React.FC<KmChartsTabProps> = ({ data, transporteMap }) => {
   const totalKm = useMemo(() => data.reduce((s, d) => s + (d.distancia_km || 0), 0), [data]);
   const totalOS = data.length;
   const mediaKmOS = totalOS > 0 ? totalKm / totalOS : 0;

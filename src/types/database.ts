@@ -138,6 +138,13 @@ export interface SolicitacaoAcesso {
 export const CIDADES = ['NATAL/PARNAMIRIM', 'FORTALEZA', 'MOSSORÓ', 'RECIFE'] as const;
 export type Cidade = typeof CIDADES[number];
 
+export interface TransporteTecnico {
+  id: string;
+  login: string;
+  nome: string;
+  transporte: string;
+}
+
 export type Database = {
   public: {
     Tables: {

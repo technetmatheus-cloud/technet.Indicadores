@@ -13,7 +13,7 @@ import KmDataTab from '@/components/km/KmDataTab';
 import KPICard from '@/components/KPICard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Route, Fuel, ClipboardCheck, ShieldAlert } from 'lucide-react';
-import type { KmTecnica } from '@/types/database';
+import type { KmTecnica, TransporteTecnico } from '@/types/database';
 
 const KmRotas = () => {
   const { selectedCity } = useCity();
@@ -21,6 +21,7 @@ const KmRotas = () => {
   const { profile } = useAuth();
 
   const [data, setData] = useState<KmTecnica[]>([]);
+  const [transportes, setTransportes] = useState<TransporteTecnico[]>([]);
   const [importOpen, setImportOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('graficos');
@@ -37,6 +38,7 @@ const KmRotas = () => {
       return;
     }
     fetchData();
+    fetchTransportes();
   }, [selectedCity]);
 
   const fetchData = async () => {
@@ -47,6 +49,19 @@ const KmRotas = () => {
       .eq('cidade', selectedCity);
     setData((rows as KmTecnica[]) || []);
   };
+
+   const fetchTransportes = async () => {
+    const { data: rows } = await supabase
+      .from('transporte_tecnico')
+      .select('*');
+    setTransportes((rows as TransporteTecnico[]) || []);
+  };
+
+  const transporteMap = useMemo(() => {
+    const map = new Map<string, string>();
+    transportes.forEach(t => map.set(t.login.toUpperCase(), t.transporte?.toLowerCase() || 'carro'));
+    return map;
+  }, [transportes]);
 
   const filteredData = useMemo(() => {
     let d = data;
@@ -62,8 +77,14 @@ const KmRotas = () => {
 
   const totalKm = useMemo(() => filteredData.reduce((s, d) => s + (d.distancia_km || 0), 0), [filteredData]);
   const totalOS = filteredData.length;
-  // Estimate liters: avg 10 km/l for service vehicles
-  const litrosEstimado = totalKm / 10;
+  const litrosEstimado = useMemo(() => {
+    return filteredData.reduce((total, d) => {
+      const km = d.distancia_km || 0;
+      const tipo = transporteMap.get(d.login_tecnico?.toUpperCase() || '') || 'carro';
+      const kmPorLitro = tipo === 'moto' ? 30 : 10;
+      return total + (km / kmPorLitro);
+    }, 0);
+  }, [filteredData, transporteMap]);
 
   const clearFilters = () => setFilters({ dataInicial: '', dataFinal: '', tecnicos: [], frentes: [] });
 
@@ -119,13 +140,13 @@ const KmRotas = () => {
           </TabsList>
 
           <TabsContent value="graficos">
-            <KmChartsTab data={filteredData} />
+            <KmChartsTab data={filteredData} transporteMap={transporteMap} />
           </TabsContent>
           <TabsContent value="mapa">
             <KmMapTab data={filteredData} />
           </TabsContent>
           <TabsContent value="dados">
-            <KmDataTab data={filteredData} />
+            <KmDataTab data={filteredData} transporteMap={transporteMap} />
           </TabsContent>
         </Tabs>
       </main>
