@@ -4,7 +4,7 @@ import { useCity } from '@/contexts/CityContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '@/assets/logo.jpeg';
-import { LogOut, MapPin, Settings, BarChart3, Route } from 'lucide-react';
+import { LogOut, MapPin, Settings, BarChart3, Route, PackageOpen } from 'lucide-react';
 
 const DashboardHeader: React.FC = () => {
   const { profile, signOut } = useAuth();
@@ -22,6 +22,7 @@ const DashboardHeader: React.FC = () => {
     navigate('/login');
   };
   const isKmRotas = location.pathname === '/km-rotas';
+  const isMiscelaneas = location.pathname === '/excesso-miscelaneas';
 
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
@@ -61,7 +62,7 @@ const DashboardHeader: React.FC = () => {
           <button
             onClick={() => navigate('/dashboard')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-t-lg border border-b-0 transition-colors ${
-              !isKmRotas
+              !isKmRotas && !isMiscelaneas
                 ? 'bg-background text-foreground border-border'
                 : 'bg-transparent text-muted-foreground border-transparent hover:text-foreground'
             }`}
@@ -79,6 +80,17 @@ const DashboardHeader: React.FC = () => {
           >
             <Route className="h-3.5 w-3.5" />
             KM-ROTAS
+          </button>
+            <button
+            onClick={() => navigate('/excesso-miscelaneas')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-t-lg border border-b-0 transition-colors ${
+              isMiscelaneas
+                ? 'bg-background text-foreground border-border'
+                : 'bg-transparent text-muted-foreground border-transparent hover:text-foreground'
+            }`}
+          >
+            <PackageOpen className="h-3.5 w-3.5" />
+            EXC. Miscelâneas
           </button>
         </div>
       </div>

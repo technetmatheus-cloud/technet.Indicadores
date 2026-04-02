@@ -10,6 +10,7 @@ import Cadastro from "./pages/Cadastro";
 import SelecionarCidade from "./pages/SelecionarCidade";
 import Dashboard from "./pages/Dashboard";
 import KmRotas from "./pages/KmRotas";
+import ExcessoMiscelaneas from "./pages/ExcessoMiscelaneas";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import React from "react";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/selecionar-cidade" element={<ProtectedRoute><SelecionarCidade /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/km-rotas" element={<ProtectedRoute><KmRotas /></ProtectedRoute>} />
+              <Route path="/excesso-miscelaneas" element={<ProtectedRoute><ExcessoMiscelaneas /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
