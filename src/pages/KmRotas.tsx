@@ -43,11 +43,25 @@ const KmRotas = () => {
 
   const fetchData = async () => {
     if (!selectedCity) return;
-    const { data: rows } = await supabase
-      .from('km_tecnica')
-      .select('*')
-      .eq('cidade', selectedCity);
-    setData((rows as KmTecnica[]) || []);
+     let allRows: KmTecnica[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    let keepFetching = true;
+    while (keepFetching) {
+      const { data: rows } = await supabase
+        .from('km_tecnica')
+        .select('*')
+        .eq('cidade', selectedCity)
+        .range(from, from + pageSize - 1);
+      const fetched = (rows as KmTecnica[]) || [];
+      allRows = [...allRows, ...fetched];
+      if (fetched.length < pageSize) {
+        keepFetching = false;
+      } else {
+        from += pageSize;
+      }
+    }
+    setData(allRows);
   };
 
    const fetchTransportes = async () => {
@@ -143,7 +157,7 @@ const KmRotas = () => {
             <KmChartsTab data={filteredData} transporteMap={transporteMap} />
           </TabsContent>
           <TabsContent value="mapa">
-            <KmMapTab data={filteredData} />
+            <KmMapTab data={filteredData} selectedTecnicos={filters.tecnicos} />
           </TabsContent>
           <TabsContent value="dados">
             <KmDataTab data={filteredData} transporteMap={transporteMap} />

@@ -7,6 +7,7 @@ const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY2NjM
 
 interface KmMapTabProps {
   data: KmTecnica[];
+  selectedTecnicos: string[];
 }
 
 interface RouteSegment {
@@ -23,7 +24,7 @@ const ROUTE_COLORS = [
   '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1',
 ];
 
-const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
+const KmMapTab: React.FC<KmMapTabProps> = ({ data, selectedTecnicos }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
@@ -35,7 +36,7 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
   const getRoute = useCallback(async (
     from: { lat: number; lng: number },
     to: { lat: number; lng: number }
-  ): Promise<[number, number][] | null> => {
+): Promise<[number, number][]> => {
     try {
       const res = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
@@ -54,12 +55,17 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
         );
       }
     } catch (e) {
-      console.warn('Route failed:', e);
+      // Silently fall back to straight line
     }
-    return null;
+    return [[from.lat, from.lng], [to.lat, to.lng]];
   }, []);
+  const shouldTraceRoutes = selectedTecnicos.length > 0;
 
   useEffect(() => {
+    if (!shouldTraceRoutes) {
+      setRouteSegments([]);
+      return;
+    }
     // Filter rows that have valid coordinates
     const rowsWithCoords = data.filter(
       r => r.coord_origem_x != null && r.coord_origem_y != null &&
@@ -92,16 +98,14 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
           { lat: toLat, lng: toLng }
         );
 
-        if (geometry) {
-          segments.push({
-            tecnico: row.recurso,
-            trecho: row.trecho,
-            km: row.distancia_km,
-            from: { lat: fromLat, lng: fromLng, endereco: row.endereco_destino || row.trecho },
-            to: { lat: toLat, lng: toLng, endereco: row.endereco_destino || row.trecho },
-            geometry,
-          });
-        }
+         segments.push({
+          tecnico: row.recurso,
+          trecho: row.trecho,
+          km: row.distancia_km,
+          from: { lat: fromLat, lng: fromLng, endereco: row.endereco_destino || row.trecho },
+          to: { lat: toLat, lng: toLng, endereco: row.endereco_destino || row.trecho },
+          geometry,
+        });
 
         count++;
         setStatusMsg(`Traçando rotas... ${count}/${rowsWithCoords.length}`);
@@ -115,7 +119,7 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
     };
 
     process();
-  }, [data, getRoute]);
+  }, [data, getRoute, shouldTraceRoutes]);
 
   // Initialize and update map
   useEffect(() => {
@@ -204,7 +208,7 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
 
           // Destination marker
           const toFill = isLastDest ? '#ef4444' : '#f59e0b';
-          const toBorder = isLastDest ? '#991b1b' : '#92400e';
+          const toBorder = isLastDest ? '#911111' : '#92400e';
           const toLabel = isLastDest ? '🔴 Fim (Retorno)' : `🟠 Parada ${segIdx + 1}`;
           const markerTo = L.circleMarker([seg.to.lat, seg.to.lng], {
             radius: isLastDest ? 8 : 5,
@@ -256,7 +260,7 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
           Mapa de Rotas
           {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           <span className="text-xs text-muted-foreground ml-auto">
-            {loading ? statusMsg : `${totalPoints} pontos · ${routeSegments.length} rotas`}
+            {loading ? statusMsg : !shouldTraceRoutes ? 'Selecione um técnico para traçar rotas' : `${totalPoints} pontos · ${routeSegments.length} rotas`}
           </span>
         </CardTitle>
       </CardHeader>
