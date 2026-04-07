@@ -152,49 +152,70 @@ const KmMapTab: React.FC<KmMapTabProps> = ({ data }) => {
       const techColors = new Map<string, string>();
       let colorIdx = 0;
 
+      // Group segments by technician to determine first/last
+      const techSegments = new Map<string, RouteSegment[]>();
       routeSegments.forEach(seg => {
-        if (!techColors.has(seg.tecnico)) {
-          techColors.set(seg.tecnico, ROUTE_COLORS[colorIdx % ROUTE_COLORS.length]);
+        if (!techSegments.has(seg.tecnico)) techSegments.set(seg.tecnico, []);
+        techSegments.get(seg.tecnico)!.push(seg);
+      });
+
+      techSegments.forEach((segments, tecnico) => {
+        if (!techColors.has(tecnico)) {
+          techColors.set(tecnico, ROUTE_COLORS[colorIdx % ROUTE_COLORS.length]);
           colorIdx++;
         }
-        const color = techColors.get(seg.tecnico) || '#3b82f6';
+        const color = techColors.get(tecnico) || '#3b82f6';
 
-        const polyline = L.polyline(seg.geometry, {
-          color,
-          weight: 4,
-          opacity: 0.8,
-        }).addTo(map);
+        segments.forEach((seg, segIdx) => {
+          const polyline = L.polyline(seg.geometry, {
+            color,
+            weight: 4,
+            opacity: 0.8,
+          }).addTo(map);
 
-        polyline.bindPopup(
-          `<strong>${seg.tecnico}</strong><br/>` +
-          `${seg.trecho}<br/>` +
-          `<strong>${seg.km} km</strong>`
-        );
+          polyline.bindPopup(
+            `<strong>${seg.tecnico}</strong><br/>` +
+            `${seg.trecho}<br/>` +
+            `<strong>${seg.km} km</strong>`
+          );
 
-        layersRef.current.push(polyline);
-        seg.geometry.forEach(p => allLatLngs.push(p));
+          layersRef.current.push(polyline);
+          seg.geometry.forEach(p => allLatLngs.push(p));
 
-        // Add origin marker
-        const markerFrom = L.circleMarker([seg.from.lat, seg.from.lng], {
-          radius: 5,
-          fillColor: color,
-          color: '#1e293b',
-          weight: 2,
-          fillOpacity: 0.9,
-        }).addTo(map);
-        markerFrom.bindPopup(`<strong>${seg.tecnico}</strong><br/>Origem: ${seg.from.endereco}`);
-        layersRef.current.push(markerFrom);
+          // Determine marker colors based on position in sequence
+          // First origin = green (Casa), last destination = red (Casa/retorno)
+          // Intermediate = orange
+          const isFirstOrigin = segIdx === 0;
+          const isLastDest = segIdx === segments.length - 1;
 
-        // Add destination marker
-        const markerTo = L.circleMarker([seg.to.lat, seg.to.lng], {
-          radius: 5,
-          fillColor: color,
-          color: '#1e293b',
-          weight: 2,
-          fillOpacity: 0.9,
-        }).addTo(map);
-        markerTo.bindPopup(`<strong>${seg.tecnico}</strong><br/>Destino: ${seg.to.endereco}`);
-        layersRef.current.push(markerTo);
+          // Origin marker
+          const fromFill = isFirstOrigin ? '#22c55e' : '#f59e0b';
+          const fromBorder = isFirstOrigin ? '#166534' : '#92400e';
+          const fromLabel = isFirstOrigin ? '🟢 Início (Casa)' : `🟠 Parada ${segIdx}`;
+          const markerFrom = L.circleMarker([seg.from.lat, seg.from.lng], {
+            radius: isFirstOrigin ? 8 : 5,
+            fillColor: fromFill,
+            color: fromBorder,
+            weight: 2,
+            fillOpacity: 0.95,
+          }).addTo(map);
+          markerFrom.bindPopup(`<strong>${seg.tecnico}</strong><br/>${fromLabel}: ${seg.from.endereco}`);
+          layersRef.current.push(markerFrom);
+
+          // Destination marker
+          const toFill = isLastDest ? '#ef4444' : '#f59e0b';
+          const toBorder = isLastDest ? '#991b1b' : '#92400e';
+          const toLabel = isLastDest ? '🔴 Fim (Retorno)' : `🟠 Parada ${segIdx + 1}`;
+          const markerTo = L.circleMarker([seg.to.lat, seg.to.lng], {
+            radius: isLastDest ? 8 : 5,
+            fillColor: toFill,
+            color: toBorder,
+            weight: 2,
+            fillOpacity: 0.95,
+          }).addTo(map);
+          markerTo.bindPopup(`<strong>${seg.tecnico}</strong><br/>${toLabel}: ${seg.to.endereco}`);
+          layersRef.current.push(markerTo);
+        });
       });
 
       // Also show points for rows with coords but no route (fallback)
