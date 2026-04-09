@@ -180,7 +180,7 @@ const Dashboard = () => {
           </div>
 
           <TabsContent value="resumo">
-            <ResumoTab data={filteredData} horarioData={filteredHorarios} cidade={selectedCity || ''} />
+            <ResumoTab data={filteredData} cidade={selectedCity || ''} />
           </TabsContent>
 
           {INDICATOR_KEYS.map((key) => (

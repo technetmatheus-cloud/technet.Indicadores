@@ -4,27 +4,30 @@ import RankingList from '@/components/RankingList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { BarChart3, Users, TrendingUp, Award } from 'lucide-react';
-import type { IndicadorTecnico, IndicadorKey, HorarioPrimeiroCliente } from '@/types/database';
+import type { IndicadorTecnico, IndicadorKey } from '@/types/database';
 import { INDICADOR_LABELS } from '@/types/database';
 
 interface ResumoTabProps {
   data: IndicadorTecnico[];
-  horarioData: HorarioPrimeiroCliente[];
   cidade: string;
 }
 
 const KEYS: IndicadorKey[] = ['nr35', 'tnps', 'inspecao_e', 'revisita', 'os_dig', 'geo', 'ura', 'tec1', 'bds'];
 
-const ResumoTab: React.FC<ResumoTabProps> = ({ data, horarioData, cidade }) => {
+const ResumoTab: React.FC<ResumoTabProps> = ({ data, cidade }) => {
   const indicatorAvgs = KEYS.map((key) => {
     const vals = data.filter((d) => d[key] !== null).map((d) => d[key] as number);
     const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-    return { indicador: INDICADOR_LABELS[key], media: Number(avg.toFixed(1)), key };
+     // Para REVISITA: inverter a escala (0% real = 100% radar, >=7% real = 0% radar)
+    const mediaNormalizada = key === 'revisita'
+      ? Number(Math.max(0, ((7 - avg) / 7) * 100).toFixed(1))
+      : Number(avg.toFixed(1));
+    return { indicador: INDICADOR_LABELS[key], media: Number(avg.toFixed(1)), mediaNorm: mediaNormalizada, key };
   });
 
   const tecnicos = new Set(data.map((d) => d.login));
   const supervisores = new Set(data.map((d) => d.supervisor));
-  const mediaGeral = indicatorAvgs.length > 0 ? indicatorAvgs.reduce((a, b) => a + b.media, 0) / indicatorAvgs.length : 0;
+  const mediaGeral = indicatorAvgs.length > 0 ? indicatorAvgs.reduce((a, b) => a + b.mediaNorm, 0) / indicatorAvgs.length : 0;
 
   const byTecnico: Record<string, { sum: number; count: number; nome: string }> = {};
   data.forEach((d) => {
@@ -45,7 +48,7 @@ const ResumoTab: React.FC<ResumoTabProps> = ({ data, horarioData, cidade }) => {
 
   const radarData = indicatorAvgs.map((ia) => ({
     subject: ia.indicador,
-    value: ia.media,
+    value: ia.mediaNorm,
     fullMark: 100,
   }));
 
@@ -60,7 +63,7 @@ const ResumoTab: React.FC<ResumoTabProps> = ({ data, horarioData, cidade }) => {
         <KPICard title="Média Geral" value={`${mediaGeral.toFixed(1)}%`} icon={BarChart3} color="primary" />
         <KPICard title="Técnicos" value={String(tecnicos.size)} icon={Users} color="primary" />
         <KPICard title="Supervisores" value={String(supervisores.size)} icon={Users} color="warning" />
-        <KPICard title="Reg. Horário" value={String(horarioData.length)} icon={Award} color="success" />
+        <KPICard title="Indicadores" value={String(KEYS.length)} icon={Award} color="success" />
       </div>
 
       <Card className="shadow-sm">
