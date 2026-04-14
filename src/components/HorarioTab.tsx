@@ -59,9 +59,11 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
     byDate[d.data_referencia].total++;
     if (d.classificacao_horario === 'ideal') byDate[d.data_referencia].ideal++;
   });
-  const lineData = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b)).map(([date, v]) => ({
-    data: date,
-    '% Ideal': Number(((v.ideal / v.total) * 100).toFixed(1)),
+const lineData = Object.entries(byDate)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([date, v]) => ({
+    data: new Date(`${date}T00:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+    media: Number((v.ideal / v.ideal).toFixed(1)),
   }));
 
   const pieData = [
@@ -109,7 +111,7 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="data" tick={{ fontSize: 9 }} />
+                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Line type="monotone" dataKey="% Ideal" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 2 }} />

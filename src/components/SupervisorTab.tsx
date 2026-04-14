@@ -38,6 +38,7 @@ const SupervisorTab: React.FC<SupervisorTabProps> = ({ data }) => {
   const mediaGeral = supervisorAvgs.length > 0 ? supervisorAvgs.reduce((a, b) => a + b.valor, 0) / supervisorAvgs.length : 0;
 
   const topSupervisors = top5.map(s => s.nome);
+  
   const byDateSup: Record<string, Record<string, { sum: number; count: number }>> = {};
   data.forEach((d) => {
     if (!topSupervisors.includes(d.supervisor)) return;
@@ -51,13 +52,24 @@ const SupervisorTab: React.FC<SupervisorTabProps> = ({ data }) => {
     });
   });
 
-  const lineData = Object.entries(byDateSup).sort(([a], [b]) => a.localeCompare(b)).map(([date, sups]) => {
-    const entry: any = { data: date };
+  const lineData = Object.entries(byDateSup)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([date, sups]) => {
+    const entry: any = {
+      data: new Date(`${date}T00:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+    };
+
     topSupervisors.forEach((s) => {
-      entry[s] = sups[s] ? Number((sups[s].sum / sups[s].count).toFixed(1)) : null;
+      entry[s] = sups[s]
+        ? Number((sups[s].sum / sups[s].count).toFixed(1))
+        : null;
     });
+
     return entry;
   });
+
+
+ 
 
   const colors = ['hsl(var(--primary))', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)', 'hsl(220, 70%, 50%)', 'hsl(280, 60%, 50%)'];
 
@@ -106,7 +118,7 @@ const SupervisorTab: React.FC<SupervisorTabProps> = ({ data }) => {
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="data" tick={{ fontSize: 9 }} />
+                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: 10 }} />

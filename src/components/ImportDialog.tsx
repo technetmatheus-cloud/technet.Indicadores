@@ -19,6 +19,9 @@ const COLUMN_MAP: Record<string, string> = {
   'INSPEÇÃO E.': 'inspecao_e',
   'INSPECAO E.': 'inspecao_e',
   'INSPECAO_E': 'inspecao_e',
+  'INSPEÇÃO': 'inspecao_e',
+  'INSPECAO': 'inspecao_e',
+  'INSPECÃO': 'inspecao_e',
   'REVISITA': 'revisita',
   'OS_DIG': 'os_dig',
   'GEO': 'geo',
@@ -69,10 +72,22 @@ const ImportDialog: React.FC<ImportDialogProps> = ({ open, onOpenChange, onImpor
       const dataKey = Object.keys(jsonData[0]).find((k) => ['DATA', 'DATA_REFERENCIA'].includes(k.trim().toUpperCase()));
 
       // Fetch dados_tecnicos for the selected city
-      const { data: dadosTecnicos } = await supabase
+      const { data: dadosTecnicos, error: fetchError } = await supabase
         .from('dados_tecnicos')
         .select('*')
         .eq('cidade', selectedCity);
+
+        if (fetchError) {
+        setResult({ success: 0, errors: [`Erro ao buscar técnicos: ${fetchError.message}. Tente fazer login novamente.`], skipped: 0 });
+        setLoading(false);
+        return;
+      }
+
+      if (!dadosTecnicos || dadosTecnicos.length === 0) {
+        setResult({ success: 0, errors: [`Nenhum técnico encontrado para a cidade "${selectedCity}". Verifique se está logado e se a cidade está correta.`], skipped: 0 });
+        setLoading(false);
+        return;
+      }
 
       const tecnicoMap = new Map<string, DadoTecnico>();
       (dadosTecnicos || []).forEach((dt: DadoTecnico) => {

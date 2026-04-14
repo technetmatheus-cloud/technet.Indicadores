@@ -45,19 +45,21 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({ data, indicatorKey, label }
     valor: Number(r.valor.toFixed(1)),
   }));
 
-  const byDate: Record<string, { sum: number; count: number }> = {};
-  validData.forEach((d) => {
-    const date = d.data_referencia;
-    if (!byDate[date]) byDate[date] = { sum: 0, count: 0 };
-    byDate[date].sum += d[indicatorKey] as number;
-    byDate[date].count++;
-  });
-  const lineData = Object.entries(byDate)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, v]) => ({
-      data: date,
-      media: Number((v.sum / v.count).toFixed(1)),
-    }));
+const byDate: Record<string, { sum: number; count: number }> = {};
+
+validData.forEach((d) => {
+  const isoDate = d.data_referencia.slice(0, 10);
+  if (!byDate[isoDate]) byDate[isoDate] = { sum: 0, count: 0 };
+  byDate[isoDate].sum += d[indicatorKey] as number;
+  byDate[isoDate].count++;
+});
+
+const lineData = Object.entries(byDate)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([date, v]) => ({
+    data: new Date(`${date}T00:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+    media: Number((v.sum / v.count).toFixed(1)),
+  }));
 
   const metaLabel = `Meta: ${meta.tipo === 'maior' ? '≥' : '≤'} ${meta.valor}%`;
 
@@ -103,7 +105,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({ data, indicatorKey, label }
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="data" tick={{ fontSize: 9 }} />
+                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, invertido ? 'auto' : 100]} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <ReferenceLine y={meta.valor} stroke="hsl(var(--destructive))" strokeDasharray="5 5" label={{ value: `${meta.valor}%`, fontSize: 9, fill: 'hsl(var(--destructive))' }} />
