@@ -57,13 +57,31 @@ const Dashboard = () => {
   const fetchData = async () => {
     if (!selectedCity) return;
 
-    const [indRes, horRes] = await Promise.all([
-      supabase.from('indicadores_tecnicos').select('*').eq('cidade', selectedCity),
-      supabase.from('horario_primeiro_cliente').select('*').eq('cidade', selectedCity),
+    const fetchAll = async <T,>(table: 'indicadores_tecnicos' | 'horario_primeiro_cliente'): Promise<T[]> => {
+      const PAGE = 1000;
+      let from = 0;
+      const all: T[] = [];
+      while (true) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .eq('cidade', selectedCity)
+          .range(from, from + PAGE - 1);
+        if (error || !data) break;
+        all.push(...(data as T[]));
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return all;
+    };
+
+    const [ind, hor] = await Promise.all([
+      fetchAll<IndicadorTecnico>('indicadores_tecnicos'),
+      fetchAll<HorarioPrimeiroCliente>('horario_primeiro_cliente'),
     ]);
 
-    setIndicadores((indRes.data as IndicadorTecnico[]) || []);
-    setHorarios((horRes.data as HorarioPrimeiroCliente[]) || []);
+    setIndicadores(ind);
+    setHorarios(hor);
   };
 
   // Filter data
