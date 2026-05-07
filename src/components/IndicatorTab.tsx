@@ -25,16 +25,18 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({ data, indicatorKey, label }
   const dentroMeta = values.filter((v) => atingeMeta(indicatorKey, v)).length;
   const pctMeta = values.length > 0 ? (dentroMeta / values.length * 100) : 0;
 
-  const byTecnico: Record<string, { sum: number; count: number; nome: string }> = {};
+    // Most recent value per technician
+  const byTecnico: Record<string, { nome: string; valor: number; data: string }> = {};
   validData.forEach((d) => {
     const key = d.login;
-    if (!byTecnico[key]) byTecnico[key] = { sum: 0, count: 0, nome: d.tecnico };
-    byTecnico[key].sum += d[indicatorKey] as number;
-    byTecnico[key].count++;
+     const data = d.data_referencia;
+    if (!byTecnico[key] || data > byTecnico[key].data) {
+      byTecnico[key] = { nome: d.tecnico, valor: d[indicatorKey] as number, data };
+    }
   });
 
   const rankings = Object.values(byTecnico)
-    .map((t) => ({ nome: t.nome, valor: t.sum / t.count }))
+    .map((t) => ({ nome: t.nome, valor: t.valor }))
     .sort((a, b) => invertido ? a.valor - b.valor : b.valor - a.valor);
 
   const top5 = rankings.slice(0, 5);
