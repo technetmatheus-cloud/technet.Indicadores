@@ -40,7 +40,7 @@ const IndicatorTab: React.FC<IndicatorTabProps> = ({ data, indicatorKey, label }
   const top5 = rankings.slice(0, 5);
   const bottom5 = [...rankings].reverse().slice(0, 5);
 
-  const barData = rankings.slice(0, 10).map((r) => ({
+  const barData = rankings.map((r) => ({
     name: r.nome.length > 12 ? r.nome.substring(0, 12) + '...' : r.nome,
     valor: Number(r.valor.toFixed(1)),
   }));
@@ -84,16 +84,20 @@ const lineData = Object.entries(byDate)
             <CardTitle className="text-sm font-medium">Ranking por Técnico</CardTitle>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={barData} layout="vertical" margin={{ left: 0, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" domain={[0, invertido ? 'auto' : 100]} tick={{ fontSize: 10 }} />
-                <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 9 }} />
-                <Tooltip />
-                <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} label={{ position: 'right', fontSize: 9 }} />
-                <ReferenceLine x={meta.valor} stroke="hsl(var(--destructive))" strokeDasharray="5 5" label={{ value: `${meta.valor}%`, fontSize: 9, fill: 'hsl(var(--destructive))' }} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[280px] overflow-y-auto pr-2">
+              <div style={{ height: Math.max(280, barData.length * 28) }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} layout="vertical" margin={{ left: 0, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" domain={[0, invertido ? 'auto' : 100]} tick={{ fontSize: 10 }} />
+                    <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 9 }} interval={0} />
+                    <Tooltip />
+                    <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} label={{ position: 'right', fontSize: 9 }} />
+                    <ReferenceLine x={meta.valor} stroke="hsl(var(--destructive))" strokeDasharray="5 5" label={{ value: `${meta.valor}%`, fontSize: 9, fill: 'hsl(var(--destructive))' }} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

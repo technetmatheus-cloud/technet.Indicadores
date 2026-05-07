@@ -162,17 +162,17 @@ const ComparativoHroTab: React.FC<ComparativoHroTabProps> = ({ horarioData }) =>
     byDate[r.data].total++;
     if (r.classificacao === 'IDEAL') byDate[r.data].ideal++;
   });
-const lineData = Object.entries(byDate)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([date, v]) => ({
-    data: new Date(`${date}T00:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
-    media: Number((v.ideal / v.ideal).toFixed(1)),
-  }));
-  
+  const lineData = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b)).map(([date, v]) => {
+    const [y, m, d] = date.split('-');
+    return {
+      data: `${d}-${m}-${y}`,
+      '% Ideal': Number(((v.ideal / v.total) * 100).toFixed(1)),
+    };
+  });
 
   const pieData = [
     { name: 'Ideal', value: ideal.length },
-    { name: 'Abaixo', value: ruim.length },
+    { name: 'Ruim', value: ruim.length },
   ];
   const pieColors = ['hsl(142, 71%, 45%)', 'hsl(0, 84%, 60%)'];
 
@@ -180,7 +180,7 @@ const lineData = Object.entries(byDate)
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard title="Tempo Ideal" value={String(ideal.length)} subtitle={`${pctIdeal.toFixed(1)}%`} icon={CheckCircle} color="success" />
-        <KPICard title="Tempo Abaixo" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
+        <KPICard title="Tempo Ruim" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
         <KPICard title="% Ideal" value={`${pctIdeal.toFixed(1)}%`} icon={Clock} color="success" />
         <KPICard title="Avaliados" value={String(total)} icon={Users} color="primary" />
       </div>
@@ -215,7 +215,7 @@ const lineData = Object.entries(byDate)
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="data" tick={{ fontSize: 9 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Line type="monotone" dataKey="% Ideal" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 2 }} />

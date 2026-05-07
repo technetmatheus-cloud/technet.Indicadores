@@ -22,6 +22,7 @@ const minutosParaHorario = (minutos: number): string => {
 };
 
 const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
+  // Deduplicate by login: keep only the latest record per login
   const latestByLogin = new Map<string, HorarioPrimeiroCliente>();
   data.forEach((d) => {
     const existing = latestByLogin.get(d.login);
@@ -37,7 +38,7 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
   const pctIdeal = totalRecords > 0 ? (ideal.length / totalRecords) * 100 : 0;
   const pctRuim = totalRecords > 0 ? (ruim.length / totalRecords) * 100 : 0;
 
- const byTecnico: Record<string, { minutos: number; nome: string }> = {};
+  const byTecnico: Record<string, { minutos: number; nome: string }> = {};
   uniqueData.forEach((d) => {
     byTecnico[d.login] = { minutos: horarioParaMinutos(d.horario_primeiro_cliente), nome: d.tecnico };
   });
@@ -59,16 +60,17 @@ const HorarioTab: React.FC<HorarioTabProps> = ({ data }) => {
     byDate[d.data_referencia].total++;
     if (d.classificacao_horario === 'ideal') byDate[d.data_referencia].ideal++;
   });
-const lineData = Object.entries(byDate)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([date, v]) => ({
-    data: new Date(`${date}T00:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
-    media: Number((v.ideal / v.ideal).toFixed(1)),
-  }));
+  const lineData = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b)).map(([date, v]) => {
+    const [y, m, d] = date.split('-');
+    return {
+      data: `${d}-${m}-${y}`,
+      '% Ideal': Number(((v.ideal / v.total) * 100).toFixed(1)),
+    };
+  });
 
   const pieData = [
     { name: 'Ideal', value: ideal.length },
-    { name: 'Abaixo', value: ruim.length },
+    { name: 'Ruim', value: ruim.length },
   ];
   const pieColors = ['hsl(142, 71%, 45%)', 'hsl(0, 84%, 60%)'];
 
@@ -76,7 +78,7 @@ const lineData = Object.entries(byDate)
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard title="Tempo Ideal" value={String(ideal.length)} subtitle={`${pctIdeal.toFixed(1)}%`} icon={CheckCircle} color="success" />
-        <KPICard title="Tempo Abaixo" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
+        <KPICard title="Tempo Ruim" value={String(ruim.length)} subtitle={`${pctRuim.toFixed(1)}%`} icon={XCircle} color="destructive" />
         <KPICard title="% Ideal" value={`${pctIdeal.toFixed(1)}%`} icon={Clock} color="success" />
         <KPICard title="Avaliados" value={String(rankings.length)} icon={Users} color="primary" />
       </div>
@@ -111,7 +113,7 @@ const lineData = Object.entries(byDate)
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="data" tick={{ fontSize: 9 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Line type="monotone" dataKey="% Ideal" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 2 }} />
